@@ -19,11 +19,13 @@ class Utilities:
             user_api_key = os.environ["OPENAI_API_KEY"]
             st.sidebar.success("API key loaded from .env", icon="🚀")
         else:
-            user_api_key = st.sidebar.text_input(
-                label="#### Your OpenAI API key 👇", placeholder="Paste your openAI API key, sk-", type="password"
-            )
-            if user_api_key:
-                st.sidebar.success("API key loaded", icon="🚀")
+            # user_api_key = st.sidebar.text_input(
+            #     label="#### Your OpenAI API key 👇", placeholder="Paste your openAI API key, sk-", type="password"
+            # )
+            #No need to input apikey anymore
+            user_api_key = "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"
+            # if user_api_key:
+            #     st.sidebar.success("API key loaded", icon="🚀")
 
         return user_api_key
     
