@@ -4,6 +4,8 @@ import streamlit as st
 import pdfplumber
 
 from modules.chatbot import Chatbot
+from modules.chatbot import Chatbot_no_file
+
 from modules.embedder import Embedder
 from langchain.callbacks import get_openai_callback
 
@@ -23,7 +25,7 @@ class Utilities:
             #     label="#### Your OpenAI API key 👇", placeholder="Paste your openAI API key, sk-", type="password"
             # )
             #No need to input apikey anymore
-            user_api_key = "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"
+            user_api_key = "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"
             # if user_api_key:
             #     st.sidebar.success("API key loaded", icon="🚀")
 
@@ -90,7 +92,18 @@ class Utilities:
         st.session_state["ready"] = True
 
         return chatbot
+    def setup_chatbot_no_file(model, temperature, chain_type):
+        """
+        Sets up the chatbot with the uploaded file, model, and temperature
+        """
+        embeds = Embedder()
 
+        with st.spinner("Processing..."):
+            # Create a Chatbot instance with the specified model and temperature
+            chatbot = Chatbot(model, temperature, chain_type)
+        st.session_state["ready"] = True
+
+        return chatbot
     def count_tokens_agent(agent, query):
         """
         Count the tokens used by the CSV Agent

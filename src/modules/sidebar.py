@@ -51,8 +51,10 @@ class Sidebar:
         st.session_state.setdefault("show_csv_agent", False)
         
         if uploaded_file and os.path.splitext(uploaded_file.name)[1].lower() == ".csv":
-            # if st.sidebar.button("CSV Agent"):
-                st.session_state["show_csv_agent"] = not st.session_state["show_csv_agent"]
+            # st.sidebar.button("CSV Agent")
+            # st.session_state["show_csv_agent"] = not st.session_state["show_csv_agent"]
+            st.session_state["show_csv_agent"] = True
+
             # Ở chỗ này t muốn lúc mà upload cái csv lên thì nó tự động chuyển qua csv agent luôn.
             
     def show_options(self, uploaded_file):
