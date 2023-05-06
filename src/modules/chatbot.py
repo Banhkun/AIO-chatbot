@@ -8,7 +8,8 @@ from langchain.chains.llm import LLMChain
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from langchain.chains.conversational_retrieval.prompts import CONDENSE_QUESTION_PROMPT, QA_PROMPT
 from langchain.chains.question_answering import load_qa_chain
-
+import numpy
+import pandas 
 class Chatbot:
 
     def __init__(self, model_name, temperature, vectors, chain_type):
