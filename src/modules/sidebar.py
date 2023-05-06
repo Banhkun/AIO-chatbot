@@ -3,11 +3,11 @@ import os
 
 class Sidebar:
 
-    MODEL_OPTIONS = ["gpt-3.5-turbo", "gpt-4"]
+    MODEL_OPTIONS = ["gpt-3.5-turbo"]
     CHAIN_TYPE_OPTIONS = ["stuff", "map_reduce", "refine", "map-rerank"]
     TEMPERATURE_MIN_VALUE = 0.0
     TEMPERATURE_MAX_VALUE = 1.0
-    TEMPERATURE_DEFAULT_VALUE = 0.0
+    TEMPERATURE_DEFAULT_VALUE = 0.7
     TEMPERATURE_STEP = 0.01
 
     @staticmethod
@@ -48,12 +48,14 @@ class Sidebar:
         st.session_state["temperature"] = temperature
         
     def csv_agent_button(self, uploaded_file):
-        st.session_state.setdefault("show_csv_agent", False)
+        # st.session_state.setdefault("show_csv_agent", False)
         
         if uploaded_file and os.path.splitext(uploaded_file.name)[1].lower() == ".csv":
-            if st.sidebar.button("CSV Agent"):
-                st.session_state["show_csv_agent"] = not st.session_state["show_csv_agent"]
-
+            # if st.sidebar.button("CSV Agent"):
+            #     st.session_state["show_csv_agent"] = not st.session_state["show_csv_agent"]
+            # Ở chỗ này t muốn lúc mà upload cái csv lên thì nó tự động chuyển qua csv agent luôn.
+            st.session_state.setdefault("show_csv_agent", True)
+            
     def show_options(self, uploaded_file):
         with st.sidebar.expander("🛠️ Robby's Tools", expanded=False):
 
