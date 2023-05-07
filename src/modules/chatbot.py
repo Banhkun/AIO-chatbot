@@ -17,15 +17,21 @@ from io import BytesIO
 import sys
 from io import StringIO
 from langchain.agents import create_csv_agent
+from langchain.document_loaders import ImageCaptionLoader
+from langchain.indexes import VectorstoreIndexCreator
+from PIL import Image
+from langchain.document_loaders import YoutubeLoader
 
+import requests
 class Chatbot:
 
-    def __init__(self, model_name, temperature, vectors=False, chain_type=False,uploaded_file=False):
+    def __init__(self, model_name, temperature, vectors=False, chain_type=False,uploaded_file=False,image=False):
         self.model_name = model_name
         self.temperature = temperature
         self.vectors = vectors
         self.chain_type = chain_type
         self.uploaded_file= uploaded_file
+        self.image = image
     _template = """Given the following conversation and a follow-up question, rephrase the follow-up question to be a standalone question.
         Chat History:
         {chat_history}
@@ -46,6 +52,15 @@ class Chatbot:
         """
         Start a conversational chat with a model via Langchain
         """
+
+        if self.image:
+            loader = ImageCaptionLoader(path_images=self.image)
+            list_docs = loader.load()
+            list_docs
+            # Image.open(requests.get(list_image_urls[0], stream=True).raw).convert('RGB')
+            index = VectorstoreIndexCreator().from_loaders([loader])
+            return index.query(query)
+
         if self.uploaded_file:
                         # format the CSV file for the agent
             uploaded_file_content = BytesIO(self.uploaded_file.getvalue())
@@ -101,7 +116,7 @@ class Chatbot:
             result += f"{final_answer}"
             return result
         
-        else:        
+        if self.vectors:        
             llm = ChatOpenAI(model_name=self.model_name, temperature=self.temperature)
 
             retriever = self.vectors.as_retriever()

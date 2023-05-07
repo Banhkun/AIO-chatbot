@@ -2,6 +2,7 @@ import os
 import pandas as pd
 import streamlit as st
 import pdfplumber
+from PIL import Image
 
 from modules.chatbot import Chatbot
 from modules.chatbot import Chatbot_no_file
@@ -25,7 +26,7 @@ class Utilities:
             #     label="#### Your OpenAI API key 👇", placeholder="Paste your openAI API key, sk-", type="password"
             # )
             #No need to input apikey anymore
-            user_api_key = "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"
+            user_api_key = "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"
             # if user_api_key:
             #     st.sidebar.success("API key loaded", icon="🚀")
 
@@ -36,7 +37,7 @@ class Utilities:
         """
         Handles the file upload and displays the uploaded file
         """
-        uploaded_file = st.sidebar.file_uploader("upload", type=["csv", "pdf", "txt"], label_visibility="collapsed")
+        uploaded_file = st.sidebar.file_uploader("upload", type=["csv", "pdf", "txt","png"], label_visibility="collapsed")
         if uploaded_file is not None:
 
             def show_csv_file(uploaded_file):
@@ -44,6 +45,10 @@ class Utilities:
                 uploaded_file.seek(0)
                 shows = pd.read_csv(uploaded_file)
                 file_container.write(shows)
+            def show_png_file(uploaded_file):
+                file_container = st.expander("Your PNG file:")
+                image = Image.open(uploaded_file)
+                file_container.image(image, caption='Uploaded PNG', use_column_width=True)
 
             def show_pdf_file(uploaded_file):
                 file_container = st.expander("Your PDF file :")
@@ -52,6 +57,7 @@ class Utilities:
                     for page in pdf.pages:
                         pdf_text += page.extract_text() + "\n\n"
                 file_container.write(pdf_text)
+
             
             def get_file_extension(uploaded_file):
                 return os.path.splitext(uploaded_file)[1].lower()
@@ -61,6 +67,8 @@ class Utilities:
             # Show the contents of the file based on its extension
             if file_extension == ".csv" :
                 show_csv_file(uploaded_file)
+            elif file_extension == ".png" :
+                show_png_file(uploaded_file)
             elif file_extension== ".pdf" : 
                 show_pdf_file(uploaded_file)
 
@@ -81,6 +89,9 @@ class Utilities:
         """
         if uploaded_file and os.path.splitext(uploaded_file.name)[1].lower() == ".csv":
             chatbot = Chatbot(model_name=model, temperature=temperature,uploaded_file=uploaded_file)
+            return chatbot
+        elif uploaded_file and os.path.splitext(uploaded_file.name)[1].lower() == ".png":
+            chatbot = Chatbot(model_name=model, temperature=temperature,image=uploaded_file)
             return chatbot
         else:
             embeds = Embedder()
