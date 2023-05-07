@@ -25,7 +25,7 @@ class Utilities:
             #     label="#### Your OpenAI API key 👇", placeholder="Paste your openAI API key, sk-", type="password"
             # )
             #No need to input apikey anymore
-            user_api_key = "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"
+            user_api_key = "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"
             # if user_api_key:
             #     st.sidebar.success("API key loaded", icon="🚀")
 
@@ -79,28 +79,32 @@ class Utilities:
         """
         Sets up the chatbot with the uploaded file, model, and temperature
         """
-        embeds = Embedder()
+        if uploaded_file and os.path.splitext(uploaded_file.name)[1].lower() == ".csv":
+            chatbot = Chatbot(model_name=model, temperature=temperature,uploaded_file=uploaded_file)
+            return chatbot
+        else:
+            embeds = Embedder()
 
-        with st.spinner("Processing..."):
-            uploaded_file.seek(0)
-            file = uploaded_file.read()
-            # Get the document embeddings for the uploaded file
-            vectors = embeds.getDocEmbeds(file, uploaded_file.name)
+            with st.spinner("Processing..."):
+                uploaded_file.seek(0)
+                file = uploaded_file.read()
+                # Get the document embeddings for the uploaded file
+                vectors = embeds.getDocEmbeds(file, uploaded_file.name)
 
-            # Create a Chatbot instance with the specified model and temperature
-            chatbot = Chatbot(model, temperature,vectors, chain_type)
-        st.session_state["ready"] = True
+                # Create a Chatbot instance with the specified model and temperature
+                chatbot = Chatbot(model, temperature,vectors, chain_type)
+            st.session_state["ready"] = True
 
-        return chatbot
-    def setup_chatbot_no_file(model, temperature, chain_type):
+            return chatbot
+    @staticmethod
+    def setup_chatbot_no_file(model, temperature):
         """
         Sets up the chatbot with the uploaded file, model, and temperature
         """
-        embeds = Embedder()
 
         with st.spinner("Processing..."):
             # Create a Chatbot instance with the specified model and temperature
-            chatbot = Chatbot(model, temperature, chain_type)
+            chatbot = Chatbot_no_file(model, temperature)
         st.session_state["ready"] = True
 
         return chatbot

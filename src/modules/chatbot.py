@@ -12,15 +12,20 @@ import numpy
 import pandas 
 from langchain import OpenAI, ConversationChain, LLMChain, PromptTemplate
 from langchain.memory import ConversationBufferWindowMemory
+import re
+from io import BytesIO
+import sys
+from io import StringIO
+from langchain.agents import create_csv_agent
 
 class Chatbot:
 
-    def __init__(self, model_name, temperature, vectors, chain_type):
+    def __init__(self, model_name, temperature, vectors=False, chain_type=False,uploaded_file=False):
         self.model_name = model_name
         self.temperature = temperature
         self.vectors = vectors
         self.chain_type = chain_type
-
+        self.uploaded_file= uploaded_file
     _template = """Given the following conversation and a follow-up question, rephrase the follow-up question to be a standalone question.
         Chat History:
         {chat_history}
@@ -41,24 +46,80 @@ class Chatbot:
         """
         Start a conversational chat with a model via Langchain
         """
-        llm = ChatOpenAI(model_name=self.model_name, temperature=self.temperature)
+        if self.uploaded_file:
+                        # format the CSV file for the agent
+            uploaded_file_content = BytesIO(self.uploaded_file.getvalue())
 
-        retriever = self.vectors.as_retriever()
+            old_stdout = sys.stdout
+            sys.stdout = captured_output = StringIO()
 
-        question_generator = LLMChain(llm=llm, prompt=self.CONDENSE_QUESTION_PROMPT,verbose=True)
+            # Create and run the CSV agent with the user's query
+            agent = create_csv_agent(ChatOpenAI(temperature=0), uploaded_file_content, verbose=True, max_iterations=4)
+            agent.run(query)
+            # agent.run(query)
+            sys.stdout = old_stdout
 
-        doc_chain = load_qa_chain(llm=llm, chain_type="stuff", prompt=self.QA_PROMPT, verbose=True)
+            # Clean up the agent's thoughts to remove unwanted characters
+            thoughts = captured_output.getvalue()
+            cleaned_thoughts = re.sub(r'\x1b\[[0-9;]*[a-zA-Z]', '', thoughts)
+            cleaned_thoughts = re.sub(r'\[1m>', '', cleaned_thoughts)
+            
+            # Display the agent's thoughts
+            with st.expander("Display the agent's thoughts"):
+                st.write(cleaned_thoughts)
 
-        chain = ConversationalRetrievalChain(
-            retriever=retriever, combine_docs_chain=doc_chain, question_generator=question_generator, verbose=True)
+            thoughts = []
+            final_answer = None
 
+            lines = cleaned_thoughts.split('\n')
+            i = 0
+            while i < len(lines):
+                line = lines[i]
+                if line.startswith("Thought:"):
+                    thought = line[len("Thought:"):]
+                    thought_actions = []
+                    j = i + 1
+                    while j < len(lines) and lines[j].startswith("Action:"):
+                        action_input = lines[j+1][len("Action Input:"):].strip()
+                        thought_actions.append(action_input)
+                        j += 2
+                    thoughts.append({"thought": thought, "actions": thought_actions})
+                    i = j - 1
+                elif line.startswith("Final Answer:"):
+                    final_answer = line[len("Final Answer:"):]
+                i += 1
 
-        chain_input = {"question": query, "chat_history": st.session_state["history"]}
-        result = chain(chain_input)
+            result = ""
+            for i in range(len(thoughts)):
+                thought = thoughts[i]["thought"]
+                result += f"{thought}\n"
+                for j in range(len(thoughts[i]["actions"])):
+                    action = thoughts[i]["actions"][j]
+                    result += f"  \n{action}\n"
+                result += "\n"
 
-        st.session_state["history"].append((query, result["answer"]))
-        #count_tokens_chain(chain, chain_input)
-        return result["answer"]
+            result += f"{final_answer}"
+            return result
+        
+        else:        
+            llm = ChatOpenAI(model_name=self.model_name, temperature=self.temperature)
+
+            retriever = self.vectors.as_retriever()
+
+            question_generator = LLMChain(llm=llm, prompt=self.CONDENSE_QUESTION_PROMPT,verbose=True)
+
+            doc_chain = load_qa_chain(llm=llm, chain_type="stuff", prompt=self.QA_PROMPT, verbose=True)
+
+            chain = ConversationalRetrievalChain(
+                retriever=retriever, combine_docs_chain=doc_chain, question_generator=question_generator, verbose=True)
+
+            
+            chain_input = {"question": query, "chat_history": st.session_state["history"]}
+            result = chain(chain_input)
+
+            st.session_state["history"].append((query, result["answer"]))
+            #count_tokens_chain(chain, chain_input)
+            return result["answer"]
 
 class Chatbot_no_file:
 

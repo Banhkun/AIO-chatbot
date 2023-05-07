@@ -12,23 +12,31 @@ class ChatHistory:
         return "Chào Em yêu !"
 
     def default_prompt(self, topic):
-        return f"Chủ nhân muốn hỏi gì về {topic} ạ"
+        if topic:
+            return f"Chủ nhân muốn hỏi gì về {topic} ạ"
+        else:
+            return f"Chủ nhân muốn hỏi gì ạ"
 
     def initialize_user_history(self):
         st.session_state["user"] = [self.default_greeting()]
 
     def initialize_assistant_history(self, uploaded_file):
-        st.session_state["assistant"] = [self.default_prompt(uploaded_file.name)]
-
+        if uploaded_file:
+            st.session_state["assistant"] = [self.default_prompt(uploaded_file.name)]
+        else:
+            st.session_state["assistant"] = [self.default_prompt(False)]
     def initialize(self, uploaded_file):
+
         if "assistant" not in st.session_state:
-            self.initialize_assistant_history(uploaded_file)
+            if uploaded_file:
+                self.initialize_assistant_history(uploaded_file)
+            else:
+                self.initialize_assistant_history(False)
         if "user" not in st.session_state:
             self.initialize_user_history()
 
     def reset(self, uploaded_file):
         st.session_state["history"] = []
-        
         self.initialize_user_history()
         self.initialize_assistant_history(uploaded_file)
         st.session_state["reset_chat"] = False
