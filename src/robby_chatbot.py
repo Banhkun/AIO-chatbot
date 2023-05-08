@@ -95,37 +95,7 @@ def main():
 
                     history.generate_messages(response_container)
 
-                    # # launch CSV Agent if uploaded file is CSV
-                    # if st.session_state["show_csv_agent"]:
 
-                    #     query = st.text_input(label="Use CSV agent for precise information about the structure of your csv file", 
-                    #                           placeholder="e-g : how many rows in my file ?"
-                    #                           )
-                    #     if query != "":
-
-                    #         # format the CSV file for the agent
-                    #         uploaded_file_content = BytesIO(uploaded_file.getvalue())
-
-                    #         old_stdout = sys.stdout
-                    #         sys.stdout = captured_output = StringIO()
-
-                    #         # Create and run the CSV agent with the user's query
-                    #         agent = create_csv_agent(ChatOpenAI(temperature=0), uploaded_file_content, verbose=True, max_iterations=4)
-                    #         result = agent.run(query)
-
-                    #         sys.stdout = old_stdout
-
-                    #         # Clean up the agent's thoughts to remove unwanted characters
-                    #         thoughts = captured_output.getvalue()
-                    #         cleaned_thoughts = re.sub(r'\x1b\[[0-9;]*[a-zA-Z]', '', thoughts)
-                    #         cleaned_thoughts = re.sub(r'\[1m>', '', cleaned_thoughts)
-
-                    #         # Display the agent's thoughts
-                    #         with st.expander("Display the agent's thoughts"):
-                    #             st.write(cleaned_thoughts)
-                    #             Utilities.count_tokens_agent(agent, query)
-
-                    #         st.write(result)
         
             except Exception as e:
                         st.error(f"Error: {str(e)}")

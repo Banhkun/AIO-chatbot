@@ -26,7 +26,7 @@ class Utilities:
             #     label="#### Your OpenAI API key 👇", placeholder="Paste your openAI API key, sk-", type="password"
             # )
             #No need to input apikey anymore
-            user_api_key = "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"
+            user_api_key = "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"
             # if user_api_key:
             #     st.sidebar.success("API key loaded", icon="🚀")
 
@@ -109,6 +109,17 @@ class Utilities:
             return chatbot
     @staticmethod
     def setup_chatbot_no_file(model, temperature):
+        """
+        Sets up the chatbot with the uploaded file, model, and temperature
+        """
+
+        with st.spinner("Processing..."):
+            # Create a Chatbot instance with the specified model and temperature
+            chatbot = Chatbot_no_file(model, temperature)
+        st.session_state["ready"] = True
+
+        return chatbot
+    def setup_chatbot_create_file(model, temperature):
         """
         Sets up the chatbot with the uploaded file, model, and temperature
         """
