@@ -55,7 +55,7 @@ class Chatbot:
         """
         if "generate" in query and ("image" in query or "picture" in query):
             
-            openai.api_key = "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"
+            openai.api_key = "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"
             response = openai.Image.create(prompt=query,    n=1,   size="256x256",)
 
             print(response["data"][0]["url"])
@@ -167,6 +167,7 @@ class Chatbot_no_file:
         """
         Start a conversational chat with a model via Langchain
         """
+        template_for_Dalle= """ Help me write a prompt for Dall-e to {human_input}  """
         template = """Assistant is a large language model trained by OpenAI.
 
 Assistant is designed to be able to assist with a wide range of tasks, from answering simple questions to providing in-depth explanations and discussions on a wide range of topics. As a language model, Assistant is able to generate human-like text based on the input it receives, allowing it to engage in natural-sounding conversations and provide responses that are coherent and relevant to the topic at hand.
@@ -180,13 +181,14 @@ Human: {human_input}
 Assistant:"""
         if "generate" in query and ("image" in query or "picture" in query):
             
-            openai.api_key = "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"
+
+            openai.api_key = "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"
             
             llm = ChatOpenAI(model_name=self.model_name, temperature=self.temperature)
 
             prompt = PromptTemplate(
-                input_variables=["history", "human_input"], 
-                template=template
+                input_variables=[ "human_input"], 
+                template=template_for_Dalle
             )
             chatgpt_chain = LLMChain(
                 llm=OpenAI(temperature=0), 
@@ -205,7 +207,7 @@ Assistant:"""
 
             image_container.image(img, caption='Generated PNG', use_column_width=True)
             st.title(output)
-            return img
+            return [img,output]
 
 
         else:
@@ -223,23 +225,6 @@ Assistant:"""
             )
 
             output = chatgpt_chain.predict(human_input=query)
-
-            # retriever = self.vectors.as_retriever()
-
-            # question_generator = LLMChain(llm=llm, prompt=self.CONDENSE_QUESTION_PROMPT,verbose=True)
-
-            # doc_chain = load_qa_chain(llm=llm, chain_type="stuff", prompt=self.QA_PROMPT, verbose=True)
-
-            # chain = ConversationalRetrievalChain(
-            #     retriever=retriever, combine_docs_chain=doc_chain, question_generator=question_generator, verbose=True)
-
-
-            # chain_input = {"question": query, "chat_history": st.session_state["history"]}
-            # result = chain(chain_input)
-
-            # st.session_state["history"].append((query, result["answer"]))
-            # #count_tokens_chain(chain, chain_input)
-            # return result["answer"]
             return output
 
     

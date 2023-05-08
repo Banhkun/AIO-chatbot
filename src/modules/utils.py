@@ -26,7 +26,7 @@ class Utilities:
             #     label="#### Your OpenAI API key 👇", placeholder="Paste your openAI API key, sk-", type="password"
             # )
             #No need to input apikey anymore
-            user_api_key = "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"
+            user_api_key = "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"
             # if user_api_key:
             #     st.sidebar.success("API key loaded", icon="🚀")
 
