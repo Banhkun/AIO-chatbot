@@ -94,8 +94,6 @@ def main():
                             history.append("assistant", output)
 
                     history.generate_messages(response_container)
-
-
         
             except Exception as e:
                         st.error(f"Error: {str(e)}")

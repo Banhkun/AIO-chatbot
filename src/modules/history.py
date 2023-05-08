@@ -1,7 +1,7 @@
 import os
 import streamlit as st
 from streamlit_chat import message
-
+from PIL import Image
 class ChatHistory:
     
     def __init__(self):
@@ -54,7 +54,16 @@ class ChatHistory:
                         key=f"{i}_user",
                         avatar_style="fun-emoji",
                     )
-                    message(st.session_state["assistant"][i], key=str(i), avatar_style="adventurer",seed=123)
+
+                    output = st.session_state["assistant"][i]
+
+                    if isinstance(output, str):
+                        # Output is a string
+                        message(output, key=str(i), avatar_style="adventurer", seed=123)
+                    else:
+                        # Output is an image
+                        container.image(output, use_column_width=False)
+
 
     def load(self):
         if os.path.exists(self.history_file):
