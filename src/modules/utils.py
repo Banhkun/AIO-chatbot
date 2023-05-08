@@ -26,7 +26,7 @@ class Utilities:
             #     label="#### Your OpenAI API key 👇", placeholder="Paste your openAI API key, sk-", type="password"
             # )
             #No need to input apikey anymore
-            user_api_key = "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"
+            user_api_key = "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"
             # if user_api_key:
             #     st.sidebar.success("API key loaded", icon="🚀")
 
@@ -77,7 +77,7 @@ class Utilities:
                 "👆 Upload your CSV or PDF file to get started, "
                 "CSV sample for try : [fishfry-locations.csv](https://drive.google.com/file/d/1TpP3thVnTcDO1_lGSh99EKH2iF3GDE7_/view?usp=sharing),"
             )
-            st.session_state["reset_chat"] = True
+            st.session_state["reset_chat"] = False
 
         #print(uploaded_file)
         return uploaded_file

@@ -54,7 +54,8 @@ class Chatbot:
         Start a conversational chat with a model via Langchain
         """
         if "generate" in query and ("image" in query or "picture" in query):
-            openai.api_key = "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"
+            
+            openai.api_key = "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"
             response = openai.Image.create(prompt=query,    n=1,   size="256x256",)
 
             print(response["data"][0]["url"])
@@ -65,6 +66,7 @@ class Chatbot:
 
             image_container.image(img, caption='Generated PNG', use_column_width=True)
             return img
+
         if "image" in query:
             response = openai.Image.create(prompt=query,    n=1,   size="256x256",)
 
@@ -161,23 +163,6 @@ class Chatbot_no_file:
         self.model_name = model_name
         self.temperature = temperature
 
-    # _template = """Given the following conversation and a follow-up question, rephrase the follow-up question to be a standalone question.
-    #     Chat History:
-    #     {chat_history}
-    #     Follow-up entry: {question}
-    #     Standalone question:"""
-    # CONDENSE_QUESTION_PROMPT = PromptTemplate.from_template(_template)
-
-    # qa_template = """You are a friendly conversational assistant named Người yêu của Bảnh, designed to answer questions and chat with the user from a contextual file.
-    #     You receive data from a user's file and a question, you must help the user find the information they need. 
-    #     Your answers must be user-friendly and respond to the user in the language they speak to you.
-    #     question: {question}
-    #     =========
-    #     context: {context}
-    #     ======="""
-    # QA_PROMPT = PromptTemplate(template=qa_template, input_variables=["question", "context"])
-
-
     def conversational_chat(self, query):
         """
         Start a conversational chat with a model via Langchain
@@ -194,17 +179,32 @@ Overall, Assistant is a powerful tool that can help with a wide range of tasks a
 Human: {human_input}
 Assistant:"""
         if "generate" in query and ("image" in query or "picture" in query):
+            
+            openai.api_key = "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"
+            
+            llm = ChatOpenAI(model_name=self.model_name, temperature=self.temperature)
 
-            openai.api_key = "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"
-            response = openai.Image.create(prompt=query,    n=1,   size="256x256",)
+            prompt = PromptTemplate(
+                input_variables=["history", "human_input"], 
+                template=template
+            )
+            chatgpt_chain = LLMChain(
+                llm=OpenAI(temperature=0), 
+                prompt=prompt, 
+                verbose=True, 
+                memory=ConversationBufferWindowMemory(k=2),
+            )
 
+            output = chatgpt_chain.predict(human_input=query)
+            response = openai.Image.create(prompt=output,    n=1,   size="256x256",)
+            
             print(response["data"][0]["url"])
-            # with st.expander("Display the image generated"):
             image_container = st.expander("Display Generated PNG")
             response = requests.get(response["data"][0]["url"])
             img = Image.open(BytesIO(response.content))
 
             image_container.image(img, caption='Generated PNG', use_column_width=True)
+            st.title(output)
             return img
 
 
