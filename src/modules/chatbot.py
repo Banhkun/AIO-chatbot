@@ -156,6 +156,12 @@ class Chatbot_no_file:
             image.save(image_file)
             st.image(image_file,caption="Ảnh theo yêu cầu của bạn", use_column_width=True)
             output = "Ảnh của bạn đã được tạo bên dưới"
+            st.download_button(
+                label="Tải ảnh xuống",
+                data=image_file,
+                file_name=image_file,
+                mime="image/png"
+            )
             return output
         else:    
             """
