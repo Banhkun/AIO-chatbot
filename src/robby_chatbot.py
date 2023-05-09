@@ -39,7 +39,7 @@ Sidebar = sidebar_module.Sidebar
 
 def init():
     load_dotenv()
-    st.set_page_config(layout="wide", page_icon="💬", page_title="Robby | Chat-Bot 🤖")
+    st.set_page_config(layout="wide", page_icon="💬", page_title="AIO | Chat-Bot 🤖")
 
 def main():
     # Initialize the app
@@ -89,9 +89,10 @@ def main():
 
                         if is_ready:
                             # Update the chat history and display the chat messages
-                            history.append("user", user_input)
-                            output = st.session_state["chatbot"].conversational_chat(user_input)
-                            history.append("assistant", output)
+                            with st.spinner("Đang tải câu trả lời..."): 
+                                history.append("user", user_input)
+                                output = st.session_state["chatbot"].conversational_chat(user_input)
+                                history.append("assistant", output)
 
                     history.generate_messages(response_container)
         
@@ -124,17 +125,17 @@ def main():
                                     history.reset(uploaded_file)
 
                                 if is_ready:
-                                    # Update the chat history and display the chat messages
-                                    history.append("user", user_input)
-                                    output = st.session_state["chatbot"].conversational_chat(user_input)
-                                    history.append("assistant", output)
+                                    with st.spinner("Đang tải câu trả lời..."):
+                                        # Update the chat history and display the chat messages
+                                        history.append("user", user_input)
+                                        output = st.session_state["chatbot"].conversational_chat(user_input)
+                                        history.append("assistant", output)
+                                        
 
                             history.generate_messages(response_container)
                     except Exception as e:
                         st.error(f"Error: {str(e)}")
 
-            # else:
-            #     chatbot = Chatbot(model, temperature,vectors, chain_type)
 
     sidebar.about()
 

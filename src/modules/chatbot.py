@@ -65,13 +65,13 @@ Overall, Assistant is a powerful tool that can help with a wide range of tasks a
 {history}
 Human: Help me write a prompt for Dall-e to {human_input}
 Assistant:"""
-            openai.api_key = ""
+            openai.api_key = "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"
             prompt = PromptTemplate(
                 input_variables=["history", "human_input"], 
                 template=template_for_Dalle
             )
             chatgpt_chain = LLMChain(
-                llm=OpenAI(temperature=0.7), 
+                llm=OpenAI(temperature=0.7,max_tokens=3500), 
                 prompt=prompt, 
                 verbose=True, 
                 memory=ConversationBufferWindowMemory(k=2),
@@ -86,7 +86,6 @@ Assistant:"""
             img = Image.open(BytesIO(response.content))
 
             image_container.image(img, caption='Generated PNG', use_column_width=True)
-            st.title(output)
             #return [output,img]
             return [output.strip(),img]
 
@@ -207,6 +206,8 @@ Assistant is designed to be able to assist with a wide range of tasks, from answ
 
 Assistant is constantly learning and improving, and its capabilities are constantly evolving. It is able to process and understand large amounts of text, and can use this knowledge to provide accurate and informative responses to a wide range of questions. Additionally, Assistant is able to generate its own text based on the input it receives, allowing it to engage in discussions and provide explanations and descriptions on a wide range of topics.
 
+Assistant will give a full answer about the problem
+
 Overall, Assistant is a powerful tool that can help with a wide range of tasks and provide valuable insights and information on a wide range of topics. Whether you need help with a specific question or just want to have a conversation about a particular topic, Assistant is here to assist.
 
 {history}
@@ -224,7 +225,7 @@ Assistant:"""
                 template=template_for_Dalle
             )
             chatgpt_chain = LLMChain(
-                llm=OpenAI(temperature=0.7), 
+                llm=OpenAI(temperature=0.7, max_tokens=3500), 
                 prompt=prompt, 
                 verbose=True, 
                 memory=ConversationBufferWindowMemory(k=2),
@@ -239,7 +240,6 @@ Assistant:"""
             img = Image.open(BytesIO(response.content))
 
             image_container.image(img, caption='Generated PNG', use_column_width=True)
-            st.title(output)
             #return [output,img]
             return [output.strip(),img]
 
@@ -252,14 +252,14 @@ Assistant:"""
                 template=template
             )
             chatgpt_chain = LLMChain(
-                llm=OpenAI(temperature=0.7), 
+                llm=OpenAI(temperature=0.7,max_tokens=3500), 
                 prompt=prompt, 
                 verbose=True, 
-                memory=ConversationBufferWindowMemory(k=2),
+                memory=ConversationBufferWindowMemory(k=5),
+                
             )
-
             output = chatgpt_chain.predict(human_input=query)
-            return output
+            return output.strip()
 
     
 def count_tokens_chain(chain, query):
