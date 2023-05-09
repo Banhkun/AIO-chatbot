@@ -54,18 +54,41 @@ class Chatbot:
         Start a conversational chat with a model via Langchain
         """
         if "generate" in query and ("image" in query or "picture" in query):
-            
-            openai.api_key = ""
-            response = openai.Image.create(prompt=query,    n=1,   size="256x256",)
+            template_for_Dalle= """Assistant is a large language model trained by OpenAI.
 
+Assistant is designed to be able to assist with a wide range of tasks, from answering simple questions to providing in-depth explanations and discussions on a wide range of topics. As a language model, Assistant is able to generate human-like text based on the input it receives, allowing it to engage in natural-sounding conversations and provide responses that are coherent and relevant to the topic at hand.
+
+Assistant is constantly learning and improving, and its capabilities are constantly evolving. It is able to process and understand large amounts of text, and can use this knowledge to provide accurate and informative responses to a wide range of questions. Additionally, Assistant is able to generate its own text based on the input it receives, allowing it to engage in discussions and provide explanations and descriptions on a wide range of topics.
+
+Overall, Assistant is a powerful tool that can help with a wide range of tasks and provide valuable insights and information on a wide range of topics. Whether you need help with a specific question or just want to have a conversation about a particular topic, Assistant is here to assist.
+
+{history}
+Human: Help me write a prompt for Dall-e to {human_input}
+Assistant:"""
+            openai.api_key = ""
+            prompt = PromptTemplate(
+                input_variables=["history", "human_input"], 
+                template=template_for_Dalle
+            )
+            chatgpt_chain = LLMChain(
+                llm=OpenAI(temperature=0.7), 
+                prompt=prompt, 
+                verbose=True, 
+                memory=ConversationBufferWindowMemory(k=2),
+            )
+
+            output = chatgpt_chain.predict(human_input=query)
+            response = openai.Image.create(prompt=output,    n=1,   size="256x256",)
+            
             print(response["data"][0]["url"])
-            # with st.expander("Display the image generated"):
             image_container = st.expander("Display Generated PNG")
             response = requests.get(response["data"][0]["url"])
             img = Image.open(BytesIO(response.content))
 
             image_container.image(img, caption='Generated PNG', use_column_width=True)
-            return img
+            st.title(output)
+            #return [output,img]
+            return [output.strip(),img]
 
         if "image" in query:
             response = openai.Image.create(prompt=query,    n=1,   size="256x256",)
