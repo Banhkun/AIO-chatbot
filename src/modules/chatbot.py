@@ -55,7 +55,7 @@ class Chatbot:
         """
         if "generate" in query and ("image" in query or "picture" in query):
             
-            openai.api_key = "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"
+            openai.api_key = ""
             response = openai.Image.create(prompt=query,    n=1,   size="256x256",)
 
             print(response["data"][0]["url"])
@@ -167,7 +167,17 @@ class Chatbot_no_file:
         """
         Start a conversational chat with a model via Langchain
         """
-        template_for_Dalle= """ Help me write a prompt for Dall-e to {human_input}  """
+        template_for_Dalle= """Assistant is a large language model trained by OpenAI.
+
+Assistant is designed to be able to assist with a wide range of tasks, from answering simple questions to providing in-depth explanations and discussions on a wide range of topics. As a language model, Assistant is able to generate human-like text based on the input it receives, allowing it to engage in natural-sounding conversations and provide responses that are coherent and relevant to the topic at hand.
+
+Assistant is constantly learning and improving, and its capabilities are constantly evolving. It is able to process and understand large amounts of text, and can use this knowledge to provide accurate and informative responses to a wide range of questions. Additionally, Assistant is able to generate its own text based on the input it receives, allowing it to engage in discussions and provide explanations and descriptions on a wide range of topics.
+
+Overall, Assistant is a powerful tool that can help with a wide range of tasks and provide valuable insights and information on a wide range of topics. Whether you need help with a specific question or just want to have a conversation about a particular topic, Assistant is here to assist.
+
+{history}
+Human: Help me write a prompt for Dall-e to {human_input}
+Assistant:"""
         template = """Assistant is a large language model trained by OpenAI.
 
 Assistant is designed to be able to assist with a wide range of tasks, from answering simple questions to providing in-depth explanations and discussions on a wide range of topics. As a language model, Assistant is able to generate human-like text based on the input it receives, allowing it to engage in natural-sounding conversations and provide responses that are coherent and relevant to the topic at hand.
@@ -182,16 +192,16 @@ Assistant:"""
         if "generate" in query and ("image" in query or "picture" in query):
             
 
-            openai.api_key = "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"
+            openai.api_key = ""
             
             llm = ChatOpenAI(model_name=self.model_name, temperature=self.temperature)
 
             prompt = PromptTemplate(
-                input_variables=[ "human_input"], 
+                input_variables=["history", "human_input"], 
                 template=template_for_Dalle
             )
             chatgpt_chain = LLMChain(
-                llm=OpenAI(temperature=0), 
+                llm=OpenAI(temperature=0.7), 
                 prompt=prompt, 
                 verbose=True, 
                 memory=ConversationBufferWindowMemory(k=2),
@@ -207,7 +217,8 @@ Assistant:"""
 
             image_container.image(img, caption='Generated PNG', use_column_width=True)
             st.title(output)
-            return [img,output]
+            #return [output,img]
+            return [output.strip(),img]
 
 
         else:
@@ -218,7 +229,7 @@ Assistant:"""
                 template=template
             )
             chatgpt_chain = LLMChain(
-                llm=OpenAI(temperature=0), 
+                llm=OpenAI(temperature=0.7), 
                 prompt=prompt, 
                 verbose=True, 
                 memory=ConversationBufferWindowMemory(k=2),

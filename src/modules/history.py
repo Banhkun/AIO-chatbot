@@ -2,6 +2,9 @@ import os
 import streamlit as st
 from streamlit_chat import message
 from PIL import Image
+from streamlit.components.v1 import html
+from io import BytesIO
+import base64
 class ChatHistory:
     
     def __init__(self):
@@ -61,9 +64,17 @@ class ChatHistory:
                         # Output is a string
                         message(output, key=str(i), avatar_style="adventurer", seed=123)
                     else:
-                        # Output is an image
-                        container.image(output, use_column_width=False)
+                        message(output[0], key=str(i), avatar_style="adventurer", seed=123)
+                        image_bytes = BytesIO()
+                        output[1].save(image_bytes, format=output[1].format)
+                        image_str = base64.b64encode(image_bytes.getvalue()).decode()
 
+                        # Center the image
+                        centered_image = f'<div style="display: flex; justify-content: center; align-items: center;"><img src="data:image/jpeg;base64,{image_str}" width="400" /></div>'
+
+                        # Display the centered image
+                        st.markdown(centered_image, unsafe_allow_html=True)
+ 
 
     def load(self):
         if os.path.exists(self.history_file):
