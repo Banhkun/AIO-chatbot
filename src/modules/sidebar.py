@@ -48,7 +48,11 @@ class Sidebar:
             st.session_state["show_csv_agent"] = True
 
             # Ở chỗ này t muốn lúc mà upload cái csv lên thì nó tự động chuyển qua csv agent luôn.
-            
+    @staticmethod
+    def Note_generate_image():
+        st.sidebar.info(
+                "🔥For Image's generation, follow format below:\n generate ... image (picture) ...🔥"
+            )        
     def show_options(self, uploaded_file):
         with st.sidebar.expander("🛠️ AIO's Tools", expanded=False):
 

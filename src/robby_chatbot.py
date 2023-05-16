@@ -64,6 +64,7 @@ def main():
             history = ChatHistory()
 
             # Configure the sidebar
+            sidebar.Note_generate_image()
             sidebar.show_options(uploaded_file)
 
             try:
@@ -89,7 +90,7 @@ def main():
 
                         if is_ready:
                             # Update the chat history and display the chat messages
-                            with st.spinner("Đang tải câu trả lời..."): 
+                            with st.spinner("Loading answers..."): 
                                 history.append("user", user_input)
                                 output = st.session_state["chatbot"].conversational_chat(user_input)
                                 history.append("assistant", output)
@@ -103,6 +104,7 @@ def main():
                     history = ChatHistory()
 
                     # Configure the sidebar
+                    sidebar.Note_generate_image()
                     sidebar.show_options(uploaded_file)
 
                     try:
@@ -125,7 +127,7 @@ def main():
                                     history.reset(uploaded_file)
 
                                 if is_ready:
-                                    with st.spinner("Đang tải câu trả lời..."):
+                                    with st.spinner("Loading answers..."):
                                         # Update the chat history and display the chat messages
                                         history.append("user", user_input)
                                         output = st.session_state["chatbot"].conversational_chat(user_input)

@@ -26,7 +26,7 @@ class Utilities:
             #     label="#### Your OpenAI API key 👇", placeholder="Paste your openAI API key, sk-", type="password"
             # )
             #No need to input apikey anymore
-            user_api_key = "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"
+            user_api_key = ""
             # if user_api_key:
             #     st.sidebar.success("API key loaded", icon="🚀")
 
@@ -37,7 +37,7 @@ class Utilities:
         """
         Handles the file upload and displays the uploaded file
         """
-        uploaded_file = st.sidebar.file_uploader("upload", type=["csv", "pdf", "txt","png"], label_visibility="collapsed")
+        uploaded_file = st.sidebar.file_uploader("upload", type=["csv", "pdf", "txt","png","jpg"], label_visibility="collapsed")
         if uploaded_file is not None:
 
             def show_csv_file(uploaded_file):
@@ -69,6 +69,8 @@ class Utilities:
                 show_csv_file(uploaded_file)
             elif file_extension == ".png" :
                 show_png_file(uploaded_file)
+            elif file_extension == ".jpg" :
+                show_png_file(uploaded_file)    
             elif file_extension== ".pdf" : 
                 show_pdf_file(uploaded_file)
 
@@ -81,6 +83,7 @@ class Utilities:
         #print(uploaded_file)
         return uploaded_file
 
+    
     @staticmethod
     def setup_chatbot(uploaded_file, model, temperature, chain_type):
         """
@@ -89,7 +92,7 @@ class Utilities:
         if uploaded_file and os.path.splitext(uploaded_file.name)[1].lower() == ".csv":
             chatbot = Chatbot(model_name=model, temperature=temperature,uploaded_file=uploaded_file)
             return chatbot
-        elif uploaded_file and os.path.splitext(uploaded_file.name)[1].lower() == ".png":
+        elif uploaded_file and (os.path.splitext(uploaded_file.name)[1].lower() == ".png" or os.path.splitext(uploaded_file.name)[1].lower() == ".jpg"):
             chatbot = Chatbot(model_name=model, temperature=temperature,image=uploaded_file)
             return chatbot
         else:

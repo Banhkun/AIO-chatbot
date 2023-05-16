@@ -39,6 +39,19 @@ class Chatbot:
         Follow-up entry: {question}
         Standalone question:"""
     CONDENSE_QUESTION_PROMPT = PromptTemplate.from_template(_template)
+    template = """Assistant is a large language model trained by OpenAI.
+
+Assistant is designed to be able to assist with a wide range of tasks, from answering simple questions to providing in-depth explanations and discussions on a wide range of topics. As a language model, Assistant is able to generate human-like text based on the input it receives, allowing it to engage in natural-sounding conversations and provide responses that are coherent and relevant to the topic at hand.
+
+Assistant is constantly learning and improving, and its capabilities are constantly evolving. It is able to process and understand large amounts of text, and can use this knowledge to provide accurate and informative responses to a wide range of questions. Additionally, Assistant is able to generate its own text based on the input it receives, allowing it to engage in discussions and provide explanations and descriptions on a wide range of topics.
+
+Assistant will give a full answer about the problem
+
+Overall, Assistant is a powerful tool that can help with a wide range of tasks and provide valuable insights and information on a wide range of topics. Whether you need help with a specific question or just want to have a conversation about a particular topic, Assistant is here to assist.
+
+{history}
+Human: {human_input}
+Assistant:"""
 
     qa_template = """You are a friendly conversational assistant named Người yêu của Bảnh, designed to answer questions and chat with the user from a contextual file.
         You receive data from a user's file and a question, you must help the user find the information they need. 
@@ -53,7 +66,8 @@ class Chatbot:
         """
         Start a conversational chat with a model via Langchain
         """
-        if "generate" in query and ("image" in query or "picture" in query):
+        if ("generate" in query.lower() and ("image" in query.lower() or "picture" in query.lower())) or ("tạo cho tôi một" in query.lower() and ("bức ảnh" in query.lower() or "tấm ảnh" in query.lower()or "bức tranh" in query.lower())):
+
             template_for_Dalle= """Assistant is a large language model trained by OpenAI.
 
 Assistant is designed to be able to assist with a wide range of tasks, from answering simple questions to providing in-depth explanations and discussions on a wide range of topics. As a language model, Assistant is able to generate human-like text based on the input it receives, allowing it to engage in natural-sounding conversations and provide responses that are coherent and relevant to the topic at hand.
@@ -65,7 +79,7 @@ Overall, Assistant is a powerful tool that can help with a wide range of tasks a
 {history}
 Human: Help me write a prompt for Dall-e to {human_input}
 Assistant:"""
-            openai.api_key = "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"
+            openai.api_key = ""
             prompt = PromptTemplate(
                 input_variables=["history", "human_input"], 
                 template=template_for_Dalle
@@ -88,96 +102,130 @@ Assistant:"""
             image_container.image(img, caption='Generated PNG', use_column_width=True)
             #return [output,img]
             return [output.strip(),img]
-
-        if "image" in query:
-            response = openai.Image.create(prompt=query,    n=1,   size="256x256",)
-
-            print(response["data"][0]["url"])
-            with st.expander("Display the image generated"):
-                st.write(response["data"][0]["url"])
             
         if self.image:
-            loader = ImageCaptionLoader(path_images=self.image)
-            list_docs = loader.load()
-            list_docs
-            # Image.open(requests.get(list_image_urls[0], stream=True).raw).convert('RGB')
-            index = VectorstoreIndexCreator().from_loaders([loader])
-            return index.query(query)
-
+            try:
+                loader = ImageCaptionLoader(path_images=self.image)
+                # Image.open(requests.get(list_image_urls[0], stream=True).raw).convert('RGB')
+                index = VectorstoreIndexCreator().from_loaders([loader])
+                return  index.query(query)
+            except:
+                prompt = PromptTemplate(
+                    input_variables=["history", "human_input"], 
+                    template=self.template
+                )
+                chatgpt_chain = LLMChain(
+                    llm=OpenAI(temperature=0.7,max_tokens=3500), 
+                    prompt=prompt, 
+                    verbose=True, 
+                    memory=ConversationBufferWindowMemory(k=5),
+                    
+                )
+                output = chatgpt_chain.predict(human_input=query)
+                return output.strip()
         if self.uploaded_file:
-                        # format the CSV file for the agent
-            uploaded_file_content = BytesIO(self.uploaded_file.getvalue())
+            try:
+                            # format the CSV file for the agent
+                uploaded_file_content = BytesIO(self.uploaded_file.getvalue())
 
-            old_stdout = sys.stdout
-            sys.stdout = captured_output = StringIO()
+                old_stdout = sys.stdout
+                sys.stdout = captured_output = StringIO()
 
-            # Create and run the CSV agent with the user's query
-            agent = create_csv_agent(ChatOpenAI(temperature=0), uploaded_file_content, verbose=True, max_iterations=4)
-            agent.run(query)
-            # agent.run(query)
-            sys.stdout = old_stdout
+                # Create and run the CSV agent with the user's query
+                agent = create_csv_agent(ChatOpenAI(temperature=0), uploaded_file_content, verbose=True, max_iterations=4)
+                agent.run(query)
+                # agent.run(query)
+                sys.stdout = old_stdout
 
-            # Clean up the agent's thoughts to remove unwanted characters
-            thoughts = captured_output.getvalue()
-            cleaned_thoughts = re.sub(r'\x1b\[[0-9;]*[a-zA-Z]', '', thoughts)
-            cleaned_thoughts = re.sub(r'\[1m>', '', cleaned_thoughts)
-            
-            # Display the agent's thoughts
-            with st.expander("Display the agent's thoughts"):
-                st.write(cleaned_thoughts)
+                # Clean up the agent's thoughts to remove unwanted characters
+                thoughts = captured_output.getvalue()
+                cleaned_thoughts = re.sub(r'\x1b\[[0-9;]*[a-zA-Z]', '', thoughts)
+                
+                # Display the agent's thoughts
+                with st.expander("Display the agent's thoughts"):
+                    st.write(cleaned_thoughts)
 
-            thoughts = []
-            final_answer = None
+                thoughts = []
+                final_answer = None
 
-            lines = cleaned_thoughts.split('\n')
-            i = 0
-            while i < len(lines):
-                line = lines[i]
-                if line.startswith("Thought:"):
-                    thought = line[len("Thought:"):]
-                    thought_actions = []
-                    j = i + 1
-                    while j < len(lines) and lines[j].startswith("Action:"):
-                        action_input = lines[j+1][len("Action Input:"):].strip()
-                        thought_actions.append(action_input)
-                        j += 2
-                    thoughts.append({"thought": thought, "actions": thought_actions})
-                    i = j - 1
-                elif line.startswith("Final Answer:"):
-                    final_answer = line[len("Final Answer:"):]
-                i += 1
+                lines = cleaned_thoughts.split('\n')
+                i = 0
+                while i < len(lines):
+                    line = lines[i]
+                    if line.startswith("Thought:"):
+                        thought = line[len("Thought:"):]
+                        thought_actions = []
+                        j = i + 1
+                        while j < len(lines) and lines[j].startswith("Action:"):
+                            action_input = lines[j+1][len("Action Input:"):].strip()
+                            thought_actions.append(action_input)
+                            j += 2
+                        thoughts.append({"thought": thought, "actions": thought_actions})
+                        i = j - 1
+                    elif line.startswith("Final Answer:"):
+                        final_answer = line[len("Final Answer:"):]
+                    i += 1
 
-            result = ""
-            for i in range(len(thoughts)):
-                thought = thoughts[i]["thought"]
-                result += f"{thought}\n"
-                for j in range(len(thoughts[i]["actions"])):
-                    action = thoughts[i]["actions"][j]
-                    result += f"  \n{action}\n"
-                result += "\n"
+                result = ""
+                for i in range(len(thoughts)):
+                    thought = thoughts[i]["thought"]
+                    result += f"{thought}\n"
+                    for j in range(len(thoughts[i]["actions"])):
+                        action = thoughts[i]["actions"][j]
+                        result += f"  \n{action}\n"
+                    result += "\n"
 
-            result += f"{final_answer}"
-            return result
+                result += f"{final_answer}"
+                return result
+            except:
+                prompt = PromptTemplate(
+                    input_variables=["history", "human_input"], 
+                    template=self.template
+                )
+                chatgpt_chain = LLMChain(
+                    llm=OpenAI(temperature=0.7,max_tokens=3500), 
+                    prompt=prompt, 
+                    verbose=True, 
+                    memory=ConversationBufferWindowMemory(k=5),
+                    
+                )
+                output = chatgpt_chain.predict(human_input=query)
+                return output.strip()
         
-        if self.vectors:        
-            llm = ChatOpenAI(model_name=self.model_name, temperature=self.temperature)
+        if self.vectors:
+            try:        
+                llm = ChatOpenAI(model_name=self.model_name, temperature=self.temperature)
 
-            retriever = self.vectors.as_retriever()
+                retriever = self.vectors.as_retriever()
 
-            question_generator = LLMChain(llm=llm, prompt=self.CONDENSE_QUESTION_PROMPT,verbose=True)
+                question_generator = LLMChain(llm=llm, prompt=self.CONDENSE_QUESTION_PROMPT,verbose=True)
 
-            doc_chain = load_qa_chain(llm=llm, chain_type="stuff", prompt=self.QA_PROMPT, verbose=True)
+                doc_chain = load_qa_chain(llm=llm, chain_type="stuff", prompt=self.QA_PROMPT, verbose=True)
 
-            chain = ConversationalRetrievalChain(
-                retriever=retriever, combine_docs_chain=doc_chain, question_generator=question_generator, verbose=True)
+                chain = ConversationalRetrievalChain(
+                    retriever=retriever, combine_docs_chain=doc_chain, question_generator=question_generator, verbose=True)
 
-            
-            chain_input = {"question": query, "chat_history": st.session_state["history"]}
-            result = chain(chain_input)
+                
+                chain_input = {"question": query, "chat_history": st.session_state["history"]}
+                result = chain(chain_input)
 
-            st.session_state["history"].append((query, result["answer"]))
-            #count_tokens_chain(chain, chain_input)
-            return result["answer"]
+                st.session_state["history"].append((query, result["answer"]))
+                #count_tokens_chain(chain, chain_input)
+                return result["answer"]
+            except:
+                prompt = PromptTemplate(
+                    input_variables=["history", "human_input"], 
+                    template=self.template
+                )
+                chatgpt_chain = LLMChain(
+                    llm=OpenAI(temperature=0.7,max_tokens=3500), 
+                    prompt=prompt, 
+                    verbose=True, 
+                    memory=ConversationBufferWindowMemory(k=5),
+                    
+                )
+                output = chatgpt_chain.predict(human_input=query)
+                return output.strip()
 
 class Chatbot_no_file:
 
@@ -213,7 +261,7 @@ Overall, Assistant is a powerful tool that can help with a wide range of tasks a
 {history}
 Human: {human_input}
 Assistant:"""
-        if "generate" in query and ("image" in query or "picture" in query):
+        if ("generate" in query.lower() and ("image" in query.lower() or "picture" in query.lower())) or ("tạo cho tôi một" in query.lower() and ("bức ảnh" in query.lower() or "tấm ảnh" in query.lower()or "bức tranh" in query.lower())):
             
 
             openai.api_key = ""
@@ -233,8 +281,6 @@ Assistant:"""
 
             output = chatgpt_chain.predict(human_input=query)
             response = openai.Image.create(prompt=output,    n=1,   size="256x256",)
-            
-            print(response["data"][0]["url"])
             image_container = st.expander("Display Generated PNG")
             response = requests.get(response["data"][0]["url"])
             img = Image.open(BytesIO(response.content))
